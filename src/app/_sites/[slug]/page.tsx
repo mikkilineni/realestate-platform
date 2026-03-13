@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { HeroSection } from "@/components/public/HeroSection";
 import { LeadCaptureForm } from "@/components/public/LeadCaptureForm";
 import { ListingCard } from "@/components/public/ListingCard";
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: { slug: string };

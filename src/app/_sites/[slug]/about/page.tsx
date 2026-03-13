@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: { slug: string };
