@@ -56,7 +56,9 @@ export async function proxy(req: NextRequest) {
   }
 
   // Custom domain — not a known subdomain
-  if (!host.endsWith(PLATFORM_DOMAIN) && host !== "localhost" && !host.includes(".localhost")) {
+  // Exclude Vercel preview/deployment URLs and other infra domains
+  const isInfraDomain = host.endsWith(".vercel.app") || host.endsWith(".vercel-dns.com");
+  if (!isInfraDomain && !host.endsWith(PLATFORM_DOMAIN) && host !== "localhost" && !host.includes(".localhost")) {
     const rewriteUrl = req.nextUrl.clone();
     rewriteUrl.pathname = `/_sites/__custom${pathname}`;
     const response = NextResponse.rewrite(rewriteUrl);
