@@ -5,7 +5,7 @@ const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN ?? "localhost";
 const ADMIN_SUBDOMAIN = process.env.ADMIN_SUBDOMAIN ?? "admin";
 const APP_SUBDOMAIN = process.env.APP_SUBDOMAIN ?? "app";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hostname = req.headers.get("host") ?? "";
   const host = hostname.split(":")[0];
