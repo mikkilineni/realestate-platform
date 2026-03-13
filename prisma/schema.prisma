@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  LOST
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum MessageChannel {
+  EMAIL
+  SMS
+  CHAT
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum ListingSource {
+  MANUAL
+  RESO
+  SPARK
+}
+
+enum ListingStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  INACTIVE
+}
+
+enum IDXAdapterType {
+  MANUAL
+  RESO
+  SPARK
+  EMBED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  role          Role      @default(AGENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  agent         Agent?
+}
+
+model Tenant {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  customDomain   String?  @unique
+  platformDomain String   @unique
+  vercelDomainId String?
+  domainVerified Boolean  @default(false)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  agent          Agent?
+  siteConfig     SiteConfig?
+  listings       Listing[]
+  leads          Lead[]
+  conversations  Conversation[]
+  idxConfig      IDXConfig?
+}
+
+model Agent {
+  id            String  @id @default(cuid())
+  tenantId      String  @unique
+  userId        String  @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  bio           String?
+  headshotUrl   String?
+  twilioNumber  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tenant        Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SiteConfig {
+  id             String  @id @default(cuid())
+  tenantId       String  @unique
+  theme          String  @default("modern")
+  primaryColor   String  @default("#1a56db")
+  logoUrl        String?
+  heroHeadline   String?
+  idxEmbedType   String?
+  idxEmbedCode   String?
+  showIdx        Boolean @default(true)
+  tenant         Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model IDXConfig {
+  id          String         @id @default(cuid())
+  tenantId    String         @unique
+  adapterType IDXAdapterType @default(MANUAL)
+  apiEndpoint String?
+  apiKey      String?
+  apiSecret   String?
+  mlsCode     String?
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  tenantId     String
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  message      String?
+  source       String?
+  status       LeadStatus @default(NEW)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversation Conversation?
+}
+
+model Conversation {
+  id             String             @id @default(cuid())
+  tenantId       String
+  leadId         String?            @unique
+  externalEmail  String?
+  externalPhone  String?
+  status         ConversationStatus @default(OPEN)
+  lastMessageAt  DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead           Lead?              @relation(fields: [leadId], references: [id])
+  messages       Message[]
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  channel        MessageChannel
+  direction      MessageDirection
+  body           String
+  subject        String?
+  externalId     String?
+  read           Boolean          @default(false)
+  sentAt         DateTime         @default(now())
+  conversation   Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Listing {
+  id           String        @id @default(cuid())
+  tenantId     String
+  mlsId        String?
+  source       ListingSource @default(MANUAL)
+  status       ListingStatus @default(ACTIVE)
+  address      String
+  city         String
+  state        String
+  zip          String
+  price        Int
+  bedrooms     Int?
+  bathrooms    Float?
+  sqft         Int?
+  description  String?
+  slug         String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  images       ListingImage[]
+
+  @@unique([tenantId, slug])
+}
+
+model ListingImage {
+  id        String  @id @default(cuid())
+  listingId String
+  url       String
+  alt       String?
+  order     Int     @default(0)
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
