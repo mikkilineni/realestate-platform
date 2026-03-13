@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getTenantByHostname } from "@/lib/tenant";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const hostname = req.headers.get("x-tenant-hostname") ?? req.headers.get("host") ?? "";
   const tenant = await getTenantByHostname(hostname);

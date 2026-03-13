@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTenantByHostname } from "@/lib/tenant";
 import { getIDXAdapter } from "@/lib/idx/registry";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const hostname = req.headers.get("x-tenant-hostname") ?? req.headers.get("host") ?? "";
   const tenant = await getTenantByHostname(hostname);
