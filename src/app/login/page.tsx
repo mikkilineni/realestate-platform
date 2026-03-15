@@ -26,7 +26,7 @@ function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(result.error);
       setLoading(false);
     } else {
       router.push(callbackUrl);

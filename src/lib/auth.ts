@@ -25,20 +25,13 @@ export const authOptions: NextAuthOptions = {
             include: { agent: { include: { tenant: true } } },
           });
         } catch (err) {
-          console.error("[auth] DB error:", err);
-          return null;
+          throw new Error("DB_ERROR: " + String(err));
         }
 
-        if (!user) {
-          console.error("[auth] No user found for:", credentials.email);
-          return null;
-        }
+        if (!user) throw new Error("USER_NOT_FOUND");
 
         const passwordMatch = await bcrypt.compare(credentials.password, user.password);
-        if (!passwordMatch) {
-          console.error("[auth] Password mismatch for:", credentials.email);
-          return null;
-        }
+        if (!passwordMatch) throw new Error("WRONG_PASSWORD");
 
         return {
           id: user.id,
